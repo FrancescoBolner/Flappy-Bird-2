@@ -8,6 +8,7 @@ import math
 
 pygame.init()
 
+
 # -------------------- Music --------------------
 
 
@@ -76,7 +77,8 @@ def render():
         if r_c_c > 600:
             screen.blit(requiem_d, (xr, yr))
             pygame.draw.rect(screen, (r_cl_r, r_cl_g, 0), (xr, szr_on + 15, r_bar, 10), 0, 2)
-            screen.blit(requiem_f_d, (x, y))
+        if rf_c:
+            screen.blit(requiem_f_d, (x, rfy))
         if las_on:
             screen.blit(laser_d, (x_las, y_las))
         if las_c_on:
@@ -260,6 +262,7 @@ while on_c:
     yr = 0
     vxr = 1.5
     szr = 37.5
+    rfy = dim_y + sz * 2
     r_c_c = 600
     szr_on = szr + 20
     r_cl_r = 0
@@ -290,6 +293,8 @@ while on_c:
     c_c = False
     c_l = False
     r_c = False
+    rfy_c = False
+    rf_c = False
     bp_c = False
     st_c_c = False
     ct_c = False
@@ -965,9 +970,12 @@ while on_c:
             if collision(x + 10, y + b_cl + 10, sz - 10, b_cl_sz - 5, xr, yr, szr, szr):
                 r_c_c = 800 * .25 + 600
                 xr = 0 - szr
+                rfy = dim_y + sz * 2
+                rfy_c = False
                 r_bar = szr_on
                 r_cl_r = 0
                 r_cl_g = 255
+                rf_c = True
                 pygame.mixer.Sound.play(Requiem)
             if xr <= 0 - szr:
                 r_c = False
@@ -1023,6 +1031,15 @@ while on_c:
                 vx_las = -vx_las
             if x_las + w_las > 0:
                 las_c += 1
+            if x_las >= dim_x and las_on:
+                x_las = dim_x
+                las_c_on = True
+            if rfy > y and not rfy_c:
+                rfy -= 20
+            else:
+                rfy_c = True
+            if rfy_c:
+                rfy = y
         else:
             requiem_d = pygame.transform.scale(requiem, (szr, szr))
             if vxo < 0:
@@ -1034,6 +1051,11 @@ while on_c:
             if vx_las < 0:
                 vx_las = -vx_las
                 x_las = dim_x
+                las_c_on = False
+            if rfy < dim_y + sz * 2:
+                rfy += 20
+            else:
+                rf_c = False
 
         # Background
         if xbg < 0:
@@ -1088,9 +1110,11 @@ while on_c:
             if keys_play[pygame.K_f]:
                 r_c_c = 800 * .25 + 600
                 xr = dim_x - szc_on - szs_on - szr_on - 25
+                rfy = y
                 r_bar = szr_on
                 r_cl_r = 0
                 r_cl_g = 255
+                rf_c = True
             if keys_play[pygame.K_x]:
                 hp = 0
 
