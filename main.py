@@ -89,6 +89,11 @@ def render():
         if s_b:
             screen.blit(shield_b_d, (xs, ys))
             pygame.draw.rect(screen, (s_cl_r, s_cl_g, 0), (xs, szs_on + 15, s_bar, 10), 0, 2)
+        if pa_c:
+            screen.blit(peanut_b_d, (xp, yp))
+        if p_b:
+            screen.blit(peanut_b_d, (xp, yp))
+            pygame.draw.rect(screen, (p_cl_r, p_cl_g, 0), (xp, szp_on + 15, p_bar, 10), 0, 2)
         if hp > 0:
             screen.blit(score_s_d, (12, 52))
             screen.blit(score_s_d, (8, 48))
@@ -118,6 +123,12 @@ def render():
         screen.blit(start_s_d, (dim_x / 2 - 100 - 2, dim_y / 2 - 50 + 2))
         screen.blit(start_s_d, (dim_x / 2 - 100 + 2, dim_y / 2 - 50 - 2))
         screen.blit(start_d, (dim_x / 2 - 100, dim_y / 2 - 50))
+    if st_c or st_c_c or m_c:
+        screen.blit(score_s_d, (12, 52))
+        screen.blit(score_s_d, (8, 48))
+        screen.blit(score_s_d, (8, 52))
+        screen.blit(score_s_d, (12, 48))
+        screen.blit(score_d, (10, 50))
     if go_c:
         screen.blit(game_over_box_d, (dim_x - dim_x / 4 * 3, dim_y - dim_y / 4 * 3 + 75))
         screen.blit(game_over_d, game_over_c)
@@ -133,7 +144,7 @@ def render():
         screen.blit(score_bp_d, (spp_x_b, spp_y_b))
         if bp_c:
             screen.blit(best_score_d, (spp_x_b - 85, spp_y_b - 40))
-        if p >= 10:
+        if p >= 20:
             screen.blit(medal_d, (300, 310))
     pygame.display.flip()
     time.sleep(fps)
@@ -153,33 +164,42 @@ f = open("file/BestScore.txt", "r+")
 bp = int(f.read())
 f.close()
 
+boosts = [True, True, True, True , True]
+
 hp_boost_f = open("file/HPBoost.txt", "r+")
-if int(hp_boost_f.read()) == 1:
-    hp_boost = True
+if int(hp_boost_f.read()) == 1 and bp >= 20:
+    boosts[0] = True
 else:
-    hp_boost = False
+    boosts[0] = False
 hp_boost_f.close()
 
 shield_boost_f = open("file/ShieldBoost.txt", "r+")
-if int(shield_boost_f.read()) == 1:
-    shield_boost = True
+if int(shield_boost_f.read()) == 1 and bp >= 30:
+    boosts[1] = True
 else:
-    shield_boost = False
+    boosts[1] = False
 shield_boost_f.close()
 
 time_boost_f = open("file/TimeBoost.txt", "r+")
-if int(time_boost_f.read()) == 1:
-    time_boost = True
+if int(time_boost_f.read()) == 1 and bp >= 40:
+    boosts[2] = True
 else:
-    time_boost = False
+    boosts[2] = False
 time_boost_f.close()
 
 requiem_boost_f = open("file/RequiemBoost.txt", "r+")
-if int(requiem_boost_f.read()) == 1:
-    requiem_boost = True
+if int(requiem_boost_f.read()) == 1 and bp >= 50:
+    boosts[3] = True
 else:
-    requiem_boost = False
+    boosts[3] = False
 requiem_boost_f.close()
+
+peanut_boost_f = open("file/PeanutBoost.txt", "r+")
+if int(peanut_boost_f.read()) == 1 and bp >= 60:
+    boosts[4] = True
+else:
+    boosts[4] = False
+peanut_boost_f.close()
 
 on_c = True
 while on_c:
@@ -191,6 +211,7 @@ while on_c:
     dim_y = dim_x * 9 / 16
     fps = .005
     cd = 300
+    ps = 0
 
     # Bird
     sz = int(dim_x / 20)
@@ -269,6 +290,18 @@ while on_c:
     r_cl_g = 255
     r_bar = 0
 
+    # Peanut Anya
+    xp = dim_x
+    yp = 0
+    vxp = 1.5
+    szp = 37.5
+    szp_on = szs + 20
+    p_b_c = 1000
+    p_bar = 0
+    p_cl_r = 0
+    p_cl_g = 255
+    p_v = 0
+
     # Background
     xbg = dim_x
     xv_bg = 1
@@ -295,6 +328,8 @@ while on_c:
     r_c = False
     rfy_c = False
     rf_c = False
+    pa_c = False
+    p_b = False
     bp_c = False
     st_c_c = False
     ct_c = False
@@ -369,6 +404,10 @@ while on_c:
     requiem_f = pygame.image.load("file/RequiemFull.png")
     requiem_f_d = pygame.transform.scale(requiem_f, (sz * 2, sz * 2))
 
+    # Peanut
+    peanut_i = pygame.image.load("file/Peanut.png")
+    peanut_b_d = pygame.transform.scale(peanut_i, (szp, szp))
+
     # Start
     start = pygame.font.SysFont("Arial", 75)
     start_d = start.render("Press SPACE to play", True, (255, 255, 255))
@@ -413,6 +452,10 @@ while on_c:
     bt_requiem_d = Button(dim_x - dim_x / 4 * 3 + 20, 300, bt_requiem, 0.25)
     bt_requiem_no = pygame.image.load('file/no_btn.png').convert_alpha()
     bt_requiem_no_d = Button(dim_x - dim_x / 4 * 3 + 20, 300, bt_requiem_no, 0.25)
+    bt_peanut = pygame.image.load('file/yes_btn.png').convert_alpha()
+    bt_peanut_d = Button(dim_x - dim_x / 4 * 3 + 20, 350, bt_peanut, 0.25)
+    bt_peanut_no = pygame.image.load('file/no_btn.png').convert_alpha()
+    bt_peanut_no_d = Button(dim_x - dim_x / 4 * 3 + 20, 350, bt_peanut_no, 0.25)
     bt_play = pygame.image.load('file/play_btn.png').convert_alpha()
     bt_play_d = Button(dim_x / 2 - 95, 250, bt_play, 5)
     bt_restart = pygame.image.load('file/restart_btn.png').convert_alpha()
@@ -433,18 +476,20 @@ while on_c:
     Shield = pygame.mixer.Sound("file/Shield.wav")
     Requiem = pygame.mixer.Sound("file/Requiem.wav")
     Life = pygame.mixer.Sound("file/Life.wav")
+    Anya = pygame.mixer.Sound("file/Anya.wav")
 
     # Volume
     pygame.mixer.Sound.set_volume(Wing, 0.3)
     pygame.mixer.Sound.set_volume(Hit, 0.5)
     pygame.mixer.Sound.set_volume(Point, 0.75)
     pygame.mixer.Sound.set_volume(Die, 0.25)
-    pygame.mixer.Sound.set_volume(Laser, 0.75)
+    pygame.mixer.Sound.set_volume(Laser, 0.5)
     pygame.mixer.Sound.set_volume(TimeStop, 0.5)
     pygame.mixer.Sound.set_volume(ShieldBreak, 1)
     pygame.mixer.Sound.set_volume(Shield, 1)
     pygame.mixer.Sound.set_volume(Requiem, 1.5)
     pygame.mixer.Sound.set_volume(Life, 0.25)
+    pygame.mixer.Sound.set_volume(Anya, 1)
 
     # -------------------- Processor --------------------
 
@@ -458,16 +503,16 @@ while on_c:
             screen.blit(settings_d, (dim_x - dim_x / 2 - dim_x / 8, 25))
 
             # HP Boost
-            if hp_boost:
+            if boosts[0]:
                 if bt_heart_d.draw(screen):
-                    hp_boost = False
+                    boosts[0] = False
                     hp_boost_f = open("file/HPBoost.txt", "r+")
                     hp_boost_f.truncate(0)
                     hp_boost_f.write("0")
                     hp_boost_f.close()
             else:
-                if bt_heart_no_d.draw(screen):
-                    hp_boost = True
+                if bt_heart_no_d.draw(screen) and bp >= 20:
+                    boosts[0] = True
                     hp_boost_f = open("file/HPBoost.txt", "r+")
                     hp_boost_f.truncate(0)
                     hp_boost_f.write("1")
@@ -475,16 +520,16 @@ while on_c:
             screen.blit(life1_i_d, (dim_x - dim_x / 4 * 3 + 110, 152.5))
 
             # Shield Boost
-            if shield_boost:
+            if boosts[1]:
                 if bt_shield_d.draw(screen):
-                    shield_boost = False
+                    boosts[1] = False
                     shield_boost_f = open("file/ShieldBoost.txt", "r+")
                     shield_boost_f.truncate(0)
                     shield_boost_f.write("0")
                     shield_boost_f.close()
             else:
-                if bt_shield_no_d.draw(screen):
-                    shield_boost = True
+                if bt_shield_no_d.draw(screen) and bp >= 30:
+                    boosts[1] = True
                     shield_boost_f = open("file/ShieldBoost.txt", "r+")
                     shield_boost_f.truncate(0)
                     shield_boost_f.write("1")
@@ -493,42 +538,55 @@ while on_c:
             screen.blit(shield_b_d, (dim_x - dim_x / 4 * 3 + 110, 202.5))
 
             # Time Boost
-            if time_boost:
+            if boosts[2]:
                 if bt_time_d.draw(screen):
-                    time_boost = False
+                    boosts[2] = False
                     time_boost_f = open("file/TimeBoost.txt", "r+")
                     time_boost_f.truncate(0)
                     time_boost_f.write("0")
                     time_boost_f.close()
-                    time_boost_f.close()
             else:
-                if bt_time_no_d.draw(screen):
-                    time_boost = True
+                if bt_time_no_d.draw(screen) and bp >= 40:
+                    boosts[2] = True
                     time_boost_f = open("file/TimeBoost.txt", "r+")
                     time_boost_f.truncate(0)
                     time_boost_f.write("1")
                     time_boost_f.close()
-                    time_boost_f.close()
             screen.blit(clock_d, (dim_x - dim_x / 4 * 3 + 110, 252.5))
 
             # Requiem Boost
-            if requiem_boost:
+            if boosts[3]:
                 if bt_requiem_d.draw(screen):
-                    requiem_boost = False
+                    boosts[3] = False
                     requiem_boost_f = open("file/RequiemBoost.txt", "r+")
                     requiem_boost_f.truncate(0)
                     requiem_boost_f.write("0")
                     requiem_boost_f.close()
-                    requiem_boost_f.close()
             else:
-                if bt_requiem_no_d.draw(screen):
-                    requiem_boost = True
+                if bt_requiem_no_d.draw(screen) and bp >= 50:
+                    boosts[3] = True
                     requiem_boost_f = open("file/RequiemBoost.txt", "r+")
                     requiem_boost_f.truncate(0)
                     requiem_boost_f.write("1")
                     requiem_boost_f.close()
-                    requiem_boost_f.close()
             screen.blit(requiem_d, (dim_x - dim_x / 4 * 3 + 110, 302.5))
+
+            # Peanut Anya Boost
+            if boosts[4]:
+                if bt_peanut_d.draw(screen):
+                    boosts[4] = False
+                    peanut_boost_f = open("file/PeanutBoost.txt", "r+")
+                    peanut_boost_f.truncate(0)
+                    peanut_boost_f.write("0")
+                    peanut_boost_f.close()
+            else:
+                if bt_peanut_no_d.draw(screen) and bp >= 60:
+                    boosts[4] = True
+                    peanut_boost_f = open("file/PeanutBoost.txt", "r+")
+                    peanut_boost_f.truncate(0)
+                    peanut_boost_f.write("1")
+                    peanut_boost_f.close()
+            screen.blit(peanut_b_d, (dim_x - dim_x / 4 * 3 + 110, 352.5))
 
             # Keys
             keys_menu = pygame.key.get_pressed()
@@ -560,6 +618,23 @@ while on_c:
             b_f += 0.1
         else:
             b_f = 0
+
+        if bp < 20:
+            ps = 0 - sum(boosts)
+        elif bp < 30:
+            ps = 1 - sum(boosts)
+        elif bp < 40:
+            ps = 2 - sum(boosts)
+        elif bp < 50:
+            ps = 3 - sum(boosts)
+        elif bp < 60:
+            ps = 4 - sum(boosts)
+        else:
+            ps = 5 - sum(boosts)
+        
+        p = ps * 5
+        score_d = score.render(str(p) + " / " + str(bp), True, (255, 255, 255))
+        score_s_d = score.render(str(p) + " / " + str(bp), True, (0, 0, 0))
 
         # Background
         if xbg < 0:
@@ -709,7 +784,7 @@ while on_c:
             b_f += 0.1
         else:
             b_f = 0
-
+        
         if y <= dim_y - dim_y / 10 - sz:
             vy += g
             y += vy
@@ -757,6 +832,8 @@ while on_c:
             pipe2_c = pygame.transform.scale(pipe, (sz_w2, sz_h2_top))
             pipe2_c = pygame.transform.flip(pipe2_c, False, True)
             p += 1
+            if p_b:
+                p += 1
             if p % 10 == 0:
                 pygame.mixer.Sound.play(Point)
             if bp <= p and not ct_c:
@@ -786,7 +863,7 @@ while on_c:
 
         # Laser
         las_c_r = random.randint(0, int(las_f))
-        if las_c_r < 1 and las_c < 0:
+        if las_c_r < 1 and las_c < 0 and bp >= 10:
             las_l = True
             x_las = dim_x
             las_c = 400
@@ -809,6 +886,8 @@ while on_c:
             x_las = dim_x
             las_on = False
             p += 1
+            if p_b:
+                p += 1
             if p % 10 == 0:
                 pygame.mixer.Sound.play(Point)
             if bp <= p and not ct_c:
@@ -843,7 +922,7 @@ while on_c:
         if hp >= 3:
             l_c = False
 
-        if l_c_r < 1 and not l_c and hp_boost:
+        if l_c_r < 1 and not l_c and boosts[0] and bp >= 20:
             l_c = True
             xl = dim_x
             yl = random.randint(int(dim_y / 12.5), int(dim_y - dim_y / 5))
@@ -859,7 +938,7 @@ while on_c:
 
         # Clock
         c_c_r = random.randint(0, 1400)
-        if c_c_r < 1 and c_c_c < 0 and not c_c and time_boost:
+        if c_c_r < 1 and c_c_c < 0 and not c_c and boosts[2] and bp >= 30:
             c_c = True
             xc = dim_x
             yc = random.randint(int(dim_y / 12.5), int(dim_y - dim_y / 5))
@@ -889,7 +968,7 @@ while on_c:
 
         if c_c_c > 600:
             fps = .02
-            xc = dim_x - szs_on - szc_on - 15
+            xc = dim_x - szs_on - szc_on - 20
             yc = 10
             clock_d = pygame.transform.scale(clock, (szc_on, szc_on))
             xc_v = x - szc_v / 2
@@ -925,7 +1004,7 @@ while on_c:
 
         s_b_c -= 1
 
-        if s_c_r < 1 and not s_c and s_b_c <= 0 and shield_boost:
+        if s_c_r < 1 and not s_c and s_b_c <= 0 and boosts[1] and bp >= 40:
             s_c = True
             xs = dim_x
             ys = random.randint(int(dim_y / 12.5), int(dim_y - dim_y / 5))
@@ -944,7 +1023,7 @@ while on_c:
 
         if s_b:
             shield_b_d = pygame.transform.scale(shield_i, (szs_on, szs_on))
-            xs = dim_x - szs_on - 5
+            xs = dim_x - szs_on - 10
             ys = 10
         else:
             shield_b_d = pygame.transform.scale(shield_i, (szs, szs))
@@ -960,7 +1039,7 @@ while on_c:
 
         # Requiem
         r_c_r = random.randint(0, 1400)
-        if r_c_r < 1 and r_c_c < 0 and not r_c and requiem_boost:
+        if r_c_r < 1 and r_c_c < 0 and not r_c and boosts[3] and bp >= 50:
             r_c = True
             xr = dim_x
             yr = random.randint(int(dim_y / 12.5), int(dim_y - dim_y / 5))
@@ -991,7 +1070,7 @@ while on_c:
             r_cl_r = 255
 
         if r_c_c > 600:
-            xr = dim_x - szc_on - szs_on - szr_on - 25
+            xr = dim_x - szc_on - szs_on - szr_on - 30
             yr = 10
             requiem_d = pygame.transform.scale(requiem, (szr_on, szr_on))
             if xo > dim_x:
@@ -1005,6 +1084,8 @@ while on_c:
                 pipe2_c = pygame.transform.scale(pipe, (sz_w2, sz_h2_top))
                 pipe2_c = pygame.transform.flip(pipe2_c, False, True)
                 p += 1
+                if p_b:
+                    p += 1
                 if p % 10 == 0:
                     pygame.mixer.Sound.play(Point)
                 if bp <= p and not ct_c:
@@ -1027,6 +1108,7 @@ while on_c:
                 vxl = -vxl
                 vxc = -vxc
                 vxs = -vxs
+                vxp = -vxp
             if x_las < dim_x and vx_las > 0:
                 vx_las = -vx_las
             if x_las + w_las > 0:
@@ -1048,6 +1130,7 @@ while on_c:
                 vxl = -vxl
                 vxc = -vxc
                 vxs = -vxs
+                vxp = -vxp
             if vx_las < 0:
                 vx_las = -vx_las
                 x_las = dim_x
@@ -1057,6 +1140,60 @@ while on_c:
             else:
                 rf_c = False
 
+        # Peanut
+        p_c_r = random.randint(0, 1000)
+        if p_b_c > 1000:
+            p_b = True
+        else:
+            p_b = False
+            if p_b_c > 0:
+                xp = 0 - szp
+
+        p_b_c -= 1
+
+        if p_c_r < 1 and not pa_c and p_b_c <= 0 and boosts[4] and bp >= 60:
+            pa_c = True
+            xp = dim_x
+            yp = random.randint(int(dim_y / 12.5), int(dim_y - dim_y / 5))
+
+        if pa_c:
+            xp -= vxp
+            if collision(x + 10, y + b_cl + 10, sz - 10, b_cl_sz - 5, xp, yp, szp, szp):
+                p_b_c = 1500
+                xp = 0 - szp
+                p_bar = szp_on
+                p_cl_r = 0
+                p_cl_g = 255
+                p_v = 0
+                pygame.mixer.Sound.play(Anya)
+            if xp <= 0 - szp:
+                pa_c = False
+
+        if p_b:
+            peanut_i = pygame.image.load("file/PeanutAnya.png")
+            peanut_b_d = pygame.transform.scale(peanut_i, (szp_on, szp_on))
+            xp = dim_x - szc_on - szs_on - szr_on - szp_on - 40
+            yp = 10
+            pygame.mixer.music.set_volume(p_v)
+        else:
+            peanut_i = pygame.image.load("file/Peanut.png")
+            peanut_b_d = pygame.transform.scale(peanut_i, (szp, szp))
+        if p_b_c < 1050:
+            if p_v < 0.5:
+                p_v += 0.025
+            else:
+                p_v = 0.5
+            pygame.mixer.music.set_volume(p_v)
+
+        p_bar -= szp_on / 500
+        p_cl_r += 255 / 500
+        p_cl_g -= 255 / 500
+
+        if p_cl_g < 0:
+            p_cl_g = 0
+        if p_cl_r > 255:
+            p_cl_r = 255
+        
         # Background
         if xbg < 0:
             xbg = dim_x
@@ -1090,13 +1227,13 @@ while on_c:
                 hp += 1
             if keys_play[pygame.K_s]:
                 s_b_c = 1600
-                xs = dim_x - szs_on - 5
+                xs = dim_x - szs_on - 10
                 s_bar = szs_on
                 s_cl_r = 0
                 s_cl_g = 255
             if keys_play[pygame.K_d]:
                 c_c_c = 800 * .25 + 600
-                xc = dim_x - szs_on - szc_on - 15
+                xc = dim_x - szs_on - szc_on - 20
                 c_bar = szc_on
                 c_cl_r = 0
                 c_cl_g = 255
@@ -1109,12 +1246,18 @@ while on_c:
                     c_d = 200
             if keys_play[pygame.K_f]:
                 r_c_c = 800 * .25 + 600
-                xr = dim_x - szc_on - szs_on - szr_on - 25
+                xr = dim_x - szc_on - szs_on - szr_on - 30
                 rfy = y
                 r_bar = szr_on
                 r_cl_r = 0
                 r_cl_g = 255
                 rf_c = True
+            if keys_play[pygame.K_g]:
+                p_b_c = 1600
+                xp = dim_x - szc_on - szs_on - szr_on - szp_on - 40
+                p_bar = szp_on
+                p_cl_r = 0
+                p_cl_g = 255
             if keys_play[pygame.K_x]:
                 hp = 0
 
@@ -1123,6 +1266,11 @@ while on_c:
     # Lose Visual
     fps = .005
     if hp <= 0:
+        if p_v < 0.5:
+            p_v += 0.025
+        else:
+            p_v = 0.5
+        pygame.mixer.music.set_volume(p_v)
         pygame.mixer.Sound.play(Die)
         while y <= dim_y - dim_y / 10 - sz:
             vy += g
@@ -1137,6 +1285,12 @@ while on_c:
     # Lose
     while go_c:
 
+        if p_v < 0.5:
+            p_v += 0.025
+        else:
+            p_v = 0.5
+        pygame.mixer.music.set_volume(p_v)
+        
         # Keys
         pygame.event.get()
         keys_stop = pygame.key.get_pressed()
@@ -1147,13 +1301,13 @@ while on_c:
             on_c = False
 
         # Medal
-        if p < 20:
+        if p < 40:
             medal = pygame.image.load("file/Coin1.png")
             medal_d = pygame.transform.scale(medal, (48 * 2.5, 48 * 2.5))
-        elif p < 30:
+        elif p < 60:
             medal = pygame.image.load("file/Coin2.png")
             medal_d = pygame.transform.scale(medal, (48 * 2.5, 48 * 2.5))
-        elif p < 40:
+        elif p < 80:
             medal = pygame.image.load("file/Coin3.png")
             medal_d = pygame.transform.scale(medal, (48 * 2.5, 48 * 2.5))
         else:
